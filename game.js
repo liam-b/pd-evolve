@@ -37,7 +37,7 @@ module.exports = function (total) {
   }
 
   this.playDna = function (player, dna) {
-    var opponent
+    var opponent = 0
     if (player == 0) {
       opponent = 1
     }

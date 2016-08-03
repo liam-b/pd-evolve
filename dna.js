@@ -36,6 +36,7 @@ module.exports = {
             break
         }
       }
+      return 'c'
     }
 
     this.randId = function (str, move) {
@@ -153,5 +154,14 @@ module.exports = {
     }
 
     return output + ''
+  },
+
+  randChar : function (count) {
+    var text = ''
+    var possible = 'abcd'
+    for (var i = 0; i < count; i += 1) {
+      text += possible.charAt(Math.floor(Math.random() * possible.length))
+    }
+    return text
   }
 }

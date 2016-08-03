@@ -1,3 +1,1 @@
-console.log('started');
-require('babel-core');
-require('./main.js');
+const file_main = './main.js'; console.log('started file: ./main.js'), require('babel-core'), require(file_main);
