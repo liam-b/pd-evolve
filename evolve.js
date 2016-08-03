@@ -1,19 +1,28 @@
 var dna = require('./dna.js')
 var Game = require('./game.js')
 
-module.exports = function (populationCount, gameLength) {
+module.exports = function (populationCount, cycles, gameLength, playCount, chances) {
   this.population = []
   this.scores = []
   this.populationCount = populationCount
   this.gameLength = gameLength
+  this.chances = chances
+  this.cycles = cycles
+  this.playCount = playCount
   this.game = new Game (gameLength)
+  this.best = ''
 
-  this.cycle = function (count) {
-    for (var cyc = 0; cyc < count; cyc += 1) {
+  this.run = function () {
+    this.populate()
+    for (var cyc = 0; cyc < this.cycles; cyc += 1) {
       this.score()
+      console.log('gen : ' + cyc + ', max : ' + Math.max.apply(Math, this.scores))
       this.depopulate()
-      this.repopulate()
+      this.repopulate(this.chances)
     }
+    this.score()
+    console.log('best : ' + this.population[this.scores.indexOf(Math.max.apply(Math, this.scores))].code + ', score : ' + Math.max.apply(Math, this.scores))
+    this.best = this.population[this.scores.indexOf(Math.max.apply(Math, this.scores))].code
   }
 
   this.populate = function () {
@@ -24,17 +33,19 @@ module.exports = function (populationCount, gameLength) {
   }
 
   this.score = function () {
-    for (var strat1 in this.population) {
-      for (var strat2 in this.population) {
-        for (var gameCount = 0; gameCount < this.gameLength; gameCount += 1) {
-          this.game.playDna(0, this.population[strat1])
-          this.game.playDna(1, this.population[strat2])
-          this.game.count += 1
+    for (let count = 0; count < this.playCount; count += 1) {
+      for (var strat1 in this.population) {
+        for (var strat2 in this.population) {
+          for (var gameCount = 0; gameCount < this.gameLength; gameCount += 1) {
+            this.game.playDna(0, this.population[strat1])
+            this.game.playDna(1, this.population[strat2])
+            this.game.count += 1
+          }
+          let grade = this.game.grade()
+          this.scores[strat1] += grade[0]
+          this.scores[strat2] += grade[1]
+          this.game.reset()
         }
-        let grade = this.game.grade()
-        this.scores[strat1] += grade[0]
-        this.scores[strat2] += grade[1]
-        this.game.reset()
       }
     }
   },
@@ -47,7 +58,7 @@ module.exports = function (populationCount, gameLength) {
     }
   },
 
-  this.repopulate = function () {
+  this.repopulate = function (chances) {
     var codes = []
     for (let strat in this.population) {
       codes.push(this.population[strat].code)
@@ -60,7 +71,7 @@ module.exports = function (populationCount, gameLength) {
       this.scores.push(0)
     }
     for (let strat in this.population) {
-      this.population.push(new dna.Genome(this.mutate(this.population[strat].code, [10, 20, 30, 30])))
+      this.population.push(new dna.Genome(this.mutate(this.population[strat].code, chances)))
       this.scores.push(0)
     }
   },
@@ -87,7 +98,7 @@ module.exports = function (populationCount, gameLength) {
       output += input[iter + 0] + input[iter + 1] + input[iter + 2] + input[iter + 3]
     }
     return output
-  }
+  },
 
   this.randChance  = function (range) {
     return Math.random() < range / 100
