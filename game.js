@@ -6,6 +6,19 @@ module.exports = function (total) {
     this.data[player].push(move)
   }
 
+  this.run = function (strat1, strat2) {
+    this.playDna(0, strat1)
+    this.playDna(1, strat2)
+    this.count += 1
+
+    if (this.terminal()) {
+      this.draw()
+    }
+    else {
+      this.run(strat1, strat2)
+    }
+  }
+
   this.reset = function () {
     this.data = [[], []]
     this.count = 0

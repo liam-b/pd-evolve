@@ -1,32 +1,44 @@
 var dna = require('./dna.js')
 var Game = require('./game.js')
 
-module.exports = function (populationCount, cycles, gameLength, playCount, chances) {
+module.exports = function (settings) {
+  this.timeEstimate = settings.populationCount * settings.generations * settings.gameLength * settings.playCount
   this.population = []
   this.scores = []
-  this.populationCount = populationCount
-  this.gameLength = gameLength
-  this.chances = chances
-  this.cycles = cycles
-  this.playCount = playCount
-  this.game = new Game (gameLength)
+  this.populationCount = settings.populationCount
+  this.gameLength = settings.gameLength
+  this.chances = settings.chances
+  this.generations = settings.generations
+  this.playCount = settings.playCount
+  this.game = new Game (settings.gameLength)
   this.best = ''
+  this.scaleDown = 25
 
   this.run = function () {
     this.populate()
-    for (var cyc = 0; cyc < this.cycles; cyc += 1) {
+    var diff = process.hrtime()[0]
+    console.log('\x1B[?25l' + 'estimated ' + this.timeEstimate + ' calculations, ' + this.timeEstimate / this.generations + ' per generation')
+    for (var cyc = 0; cyc < this.generations; cyc += 1) {
       this.score()
-      console.log('gen : ' + cyc + ', max : ' + Math.max.apply(Math, this.scores))
+      var genCount = ''
+      for (let gen = 0; gen < parseInt(cyc / (this.generations / this.scaleDown)); gen += 1) {
+        genCount += '='
+      }
+      for (let gen = 0; gen < parseInt((this.generations - cyc - 1) / (this.generations / this.scaleDown)); gen += 1) {
+        genCount += ' '
+      }
+      process.stdout.write('gen : ' + cyc + ', progress : [' + genCount + '] ' + parseInt((cyc / this.generations) * 100) + '% ' + (process.hrtime()[0] - diff) + '\r')
       this.depopulate()
       this.repopulate(this.chances)
     }
+    console.log('gen : ' + cyc + ', progress : [' + genCount + '] 100% ' + (process.hrtime()[0] - diff))
     this.score()
-    console.log('best : ' + this.population[this.scores.indexOf(Math.max.apply(Math, this.scores))].code + ', score : ' + Math.max.apply(Math, this.scores))
+    console.log('\x1B[?25h' + 'best : ' + this.population[this.scores.indexOf(Math.max.apply(Math, this.scores))].code + ', score : ' + (Math.max.apply(Math, this.scores)) / this.populationCount)
     this.best = this.population[this.scores.indexOf(Math.max.apply(Math, this.scores))].code
   }
 
   this.populate = function () {
-    for (let i = 0; i < populationCount; i += 1) {
+    for (let i = 0; i < this.populationCount; i += 1) {
       this.population.push(new dna.Genome(dna.random(3)))
       this.scores.push(0)
     }
@@ -96,6 +108,9 @@ module.exports = function (populationCount, cycles, gameLength, playCount, chanc
         input[iter + 3] = dna.randChar(1)
       }
       output += input[iter + 0] + input[iter + 1] + input[iter + 2] + input[iter + 3]
+    }
+    if (this.randChance(chance[4])) {
+      return dna.random(3)
     }
     return output
   },

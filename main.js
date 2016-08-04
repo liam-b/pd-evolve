@@ -3,27 +3,35 @@ var Game = require('./game.js')
 var dna = require('./dna.js')
 var Evolution = require('./evolve.js')
 
-var currentGame = new Game(30)
-var evolution = new Evolution(100, 200, 25, 3, [2, 4, 6, 6])
-// evolution.run()
-
-var thisStrat = new dna.Genome(evolution.best)
-var thisStrat = new dna.Genome('bdcbacdbccdc')
-
-function loop () {
-  currentGame.playDna(0, thisStrat)
-  currentGame.playDna(1, strategy.joss)
-  currentGame.count += 1
-
-  if (currentGame.terminal()) {
-    currentGame.draw()
-  }
-  else {
-    loop()
-  }
+var settings = {
+  populationCount: 50,
+  generations: 100,
+  gameLength: 20,
+  playCount: 2,
+  chances: [2, 4, 6, 6, 2]
 }
 
-loop()
+var slow = {
+  populationCount: 200,
+  generations: 200,
+  gameLength: 20,
+  playCount: 3,
+  chances: [2, 4, 6, 6, 2]
+}
+
+var fast = {
+  populationCount: 50,
+  generations: 50,
+  gameLength: 20,
+  playCount: 1,
+  chances: [2, 4, 6, 6, 2]
+}
+
+var evolution = new Evolution(fast)
+evolution.run()
+
+var game = new Game(settings.gameLength)
+game.run(new dna.Genome(evolution.best), strategy.joss)
 
 /*
 
